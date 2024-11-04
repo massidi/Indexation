@@ -1,0 +1,122 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello InvertedIndexController!{% endblock %}
+
+{% block body %}
+
+    <div class="container">
+
+        <div class="row height d-flex justify-content-center align-items-center">
+
+            <div class="col-md-6">
+
+                <div class="form">
+                     <form method="get">
+                         <i class="fa fa-search"></i>
+                         <input type="text" class="form-control form-input" id="search-term" name="term" value="{{ term }}" placeholder="Search anything...">
+                         <span class="left-pan"><button type="submit" class="btn btn-sm btn-outline-secondary">Search</button></span>
+
+                     </form>
+                </div>
+
+            </div>
+        </div>
+        <div class="row height d-flex justify-content-center align-items-center">
+
+
+            <div class="col-md-12">
+
+                {% if term %}
+                    <h3>Résultats de la recherche pour "{{ term }}" : {{ results |length }}</h3>
+
+                    {% if results is empty %}
+                        <p>No documents found containing the term "{{ term }}".</p>
+                    {% else %}
+                        <ol>
+                            {% set docId="" %}
+                            {% for resultat in results %}
+{#{{ dump(resultat) }}#}
+                                <li>
+
+                                    <div class="card mt-3">
+                                        <div class="card-body">
+
+                                    <a href="{{ path('download_file', {'filename': resultat.document.name}) }}">
+
+                                    {{ resultat.document.name}}
+                                   <strong>({{ resultat.wordCount}})</strong>
+                                    </a>
+
+
+                                    <br>
+                                    {{ resultat.preview }}...<br>
+
+                                            <button type="button" onclick="changeText({{ resultat.document.id }})" class="btn btn-light float-right" data-id="{{ resultat.document.id }}">voir...</button>
+
+                                        </div>
+
+                                    </div>
+
+                                </li>
+
+                            {% endfor %}
+                        </ol>
+                    {% endif %}
+                {% endif %}
+            </div>
+
+
+        </div>
+
+    </div>
+
+
+{#    <form method="get">#}
+{#        <label for="search-term">Enter a search term:</label>#}
+{#        <input type="text" id="search-term" name="term" value="{{ term }}">#}
+{#        <button type="submit">Search</button>#}
+{#    </form>#}
+
+    {% block js %}
+        {{ parent() }}
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
+
+        <script>
+            function changeText(data) {
+                console.log(data)
+
+            }
+        </script>
+{#        <script>#}
+{#            $(document).ready(function() {#}
+{#                $('.btn-light').on('click', function() {#}
+{#                    // Récupère l'ID du document depuis l'attribut data-id du bouton#}
+{#                    var documentId = $(this).data('id');#}
+
+{#                    // console.log(documentId)#}
+
+{#                    // Envoie une requête AJAX au contrôleur avec l'ID du document#}
+{#                    $.ajax({#}
+{#                        url: 'nuage/mot',  // Remplacez par le chemin de votre route#}
+{#                        method: 'POST',#}
+{#                        data: {#}
+{#                            id: documentId#}
+{#                        },#}
+{#                        success: function(response) {#}
+{#                            console.log('Succès:', response);#}
+{#                            // Gérer la réponse ici, par exemple, afficher un message#}
+{#                        },#}
+{#                        error: function(xhr, status, error) {#}
+{#                            console.error('Erreur:', error);#}
+{#                            // Gérer les erreurs ici#}
+{#                        }#}
+{#                    });#}
+{#                });#}
+{#            });#}
+
+{#        </script>#}
+
+        {% endblock %}
+
+
+{% endblock %}

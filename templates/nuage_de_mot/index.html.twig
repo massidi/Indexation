@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello NuageDeMotController!{% endblock %}
+
+{% block body %}
+
+    <div class="container">
+
+
+    <p>Nuage de Mots avec D3.js</p>
+
+
+    </div>
+
+
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
+    <script src="script.js"></script> <!-- Inclure le fichier où le code est stocké -->
+
+
+    <script>
+
+        // Dimensions du nuage de mots
+        const width = 500;
+        const height = 400;
+
+        const wordsArray = ["document", "texte", "fichier", "mot", "texte", "texte", "document", "analyse", "texte", "nuage", "fichier"];
+        function calculateWordFrequencies(words) {
+            const frequencyMap = {};
+
+            words.forEach(word => {
+                frequencyMap[word] = (frequencyMap[word] || 0) + 1;
+            });
+
+            return Object.keys(frequencyMap).map(word => ({
+                text: word,
+                size: frequencyMap[word] * 10  // Ajustez le multiplicateur pour la taille
+            }));
+        }
+
+        const wordsData = calculateWordFrequencies(wordsArray);
+
+
+        // Sélectionnez l'élément SVG et définissez ses dimensions
+        const svg = d3.select(".container") // Utilisez "body" ou remplacez-le par un ID spécifique
+            .append("svg")
+            .attr("width", width)
+            .attr("height", height)
+            .append("g")
+            .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+
+        // Générer la mise en page du nuage de mots
+        const layout = d3.layout.cloud()
+            .size([width, height])
+            .words(wordsData)
+            .padding(5)
+            .fontSize(d => d.size) // Utiliser la fréquence pour la taille
+            .on("end", draw);
+
+        // Démarrer la mise en page
+        layout.start();
+
+        // Fonction de dessin
+        function draw(words) {
+            svg.selectAll("text")
+                .data(words)
+                .enter().append("text")
+                .style("font-size", d => d.size + "px")
+                .style("fill", (d, i) => d3.schemeCategory10[i % 10]) // Couleurs pour les mots
+                .attr("text-anchor", "middle")
+                .attr("transform", d => "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")")
+                .text(d => d.text);
+        }
+
+
+    </script>
+
+{% endblock %}

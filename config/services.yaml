@@ -4,6 +4,8 @@
 # Put parameters here that don't need to change on each machine where the app is deployed
 # https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
 parameters:
+    upload_directory: '%kernel.project_dir%/public/document/'
+
 
 services:
     # default configuration for services in *this* file
@@ -19,6 +21,11 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+#    App\Service\InvertedIndexService: ~
+#    App\Services\Doc2Txt:
+#        arguments:
+#            $filePath: '%kernel.project_dir%/public/documents/'
+
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

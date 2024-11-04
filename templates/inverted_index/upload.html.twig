@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Hello InvertedIndexController!{% endblock %}
+
+{% block body %}
+
+    <div class="container">
+        <div class="row height d-flex justify-content-center align-items-center">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Upload Document Directory</h5>
+                    <form action="{{ path('file_upload') }}" method="POST" enctype="multipart/form-data">
+                        <label for="formFileSm" class="form-label">Upload Directory (Only .txt files will be processed)</label>
+                        <input class="form-control form-control-sm" id="formFileSm" type="file" name="documents[]"
+                               webkitdirectory directory multiple required />
+                        <button type="submit" class="btn btn-primary mt-3">Upload Directory</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    {#    <form method="get"> #}
+    {#        <label for="search-term">Enter a search term:</label> #}
+    {#        <input type="text" id="search-term" name="term" value="{{ term }}"> #}
+    {#        <button type="submit">Search</button> #}
+    {#    </form> #}
+
+
+{% endblock %}
