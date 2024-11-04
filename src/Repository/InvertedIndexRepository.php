@@ -67,4 +67,23 @@ class InvertedIndexRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+    public function getWordsByDocumentId(int $documentId): array
+    {
+        // Get the repository for the inverted index
+        $invertedIndexRepo = $this->entityManager->getRepository(InvertedIndex::class);
+
+        // Use the query builder to fetch all words related to the given document ID
+        return $invertedIndexRepo->createQueryBuilder('i')
+            ->join('i.word', 'w') // Join to the Word entity
+            ->where('i.document = :documentId') // Filter by the document ID
+            ->setParameter('documentId', $documentId)
+            ->orderBy('i.wordCount', 'DESC') // Optional: Sort by frequency in descending order
+            ->getQuery()
+            ->getResult();
+    }
+
+
+
+
+
 }

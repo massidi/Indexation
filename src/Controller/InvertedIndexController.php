@@ -2,22 +2,28 @@
 
 namespace App\Controller;
 
+use App\Repository\DocumentRepository;
+use App\Repository\InvertedIndexRepository;
 use Exception;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use App\Services\InvertedIndexService; // Fixed namespace for service
+use App\Services\InvertedIndexService;
+
+// Fixed namespace for service
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\Routing\Attribute\Route;
 
 class InvertedIndexController extends AbstractController
 {
     private InvertedIndexService $invertedIndexService; // Changed public to private
+    private InvertedIndexRepository $repository;
 
-    public function __construct(InvertedIndexService $invertedIndexService)
+    public function __construct(InvertedIndexService $invertedIndexService, InvertedIndexRepository $repository)
     {
         $this->invertedIndexService = $invertedIndexService;
+        $this->repository = $repository;
     }
 
     #[Route(path: '/search_page', name: 'search_page')] // Added name for the route
@@ -32,12 +38,22 @@ class InvertedIndexController extends AbstractController
             $results = $this->invertedIndexService->searchInIndex($term);
 
 
-            // Read the first 50 characters of each document
             foreach ($results as $result) {
 
-//                dd($result->getDocument());
 
-//                $document=
+                $documentWords = $this->repository->getWordsByDocumentId($result->getDocument()->getId());
+
+                $wordsArray = [];
+
+                foreach ($documentWords as $entry) {
+                    // Assuming you have a method in InvertedIndex to get the associated Word entity
+                    $wordEntity = $entry->getWord()->getTerm(); // Adjust this according to your InvertedIndex entity method
+                    $wordsArray[] = $wordEntity; // Collect the Word entity
+                }
+
+
+                $result->wordArray=$wordsArray;
+
 
 
                 $documentPath = $this->getParameter('upload_directory') . '/' . $result->getDocument()->getName();
@@ -72,7 +88,6 @@ class InvertedIndexController extends AbstractController
             $files = $request->files->get('documents');
 
 //            dd($files);
-
 
 
             foreach ($files as $file) {

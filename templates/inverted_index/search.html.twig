@@ -2,11 +2,26 @@
 
 {% block title %}Hello InvertedIndexController!{% endblock %}
 
+{% block stylesheets %}
+    {{ parent() }}
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
+          integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        .word-cloud {
+            width: 100%;
+            height: 500px;
+        }
+    </style>
+{% endblock %}
+
 {% block body %}
 
     <div class="container">
 
         <div class="row height d-flex justify-content-center align-items-center">
+
 
             <div class="col-md-6">
 
@@ -24,10 +39,32 @@
         <div class="row height d-flex justify-content-center align-items-center">
 
 
+            <!-- Modal -->
+            <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="exampleModalLongTitle">Nuage des mots</h5>
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                        <div class="modal-body overflow-auto word-cloud" style="max-height: 500px;" id="word-cloud">
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
             <div class="col-md-12">
 
                 {% if term %}
-                    <h3>Résultats de la recherche pour "{{ term }}" : {{ results |length }}</h3>
+                    <div class="d-flex align-items-center justify-content-center" style="height: 5vh;">
+                        <h4>
+                            Votre recherche pour  "{{ term }}" a retourné {{ results | length }} résultats
+                        </h4>
+                    </div>
 
                     {% if results is empty %}
                         <p>No documents found containing the term "{{ term }}".</p>
@@ -35,7 +72,7 @@
                         <ol>
                             {% set docId="" %}
                             {% for resultat in results %}
-{#{{ dump(resultat) }}#}
+{#{{ dump(resultat.wordArray) }}#}
                                 <li>
 
                                     <div class="card mt-3">
@@ -50,8 +87,11 @@
 
                                     <br>
                                     {{ resultat.preview }}...<br>
-
-                                            <button type="button" onclick="changeText({{ resultat.document.id }})" class="btn btn-light float-right" data-id="{{ resultat.document.id }}">voir...</button>
+                                   <button type="button" onclick="changeText( {{resultat.wordArray|json_encode }})"
+                                           class="btn float-right" data-id="{{ resultat.document.id }}"
+                                           data-toggle="modal" data-target="#exampleModalCenter">
+                                       <i class="fa-brands fa-cloudflare " style="color: cadetblue; width: 15px"></i>
+                                   </button>
 
                                         </div>
 
@@ -82,39 +122,59 @@
         <script src="https://cdnjs.cloudflare.com/ajax/libs/d3-cloud/1.2.5/d3.layout.cloud.min.js"></script>
 
         <script>
+            // Function to change the text in the word cloud
             function changeText(data) {
-                console.log(data)
+                // Clear the previous word cloud
+                clearWordCloud();
 
+                // Convert wordArray to an array of objects with text and a default size
+                const words = data.map(word => ({ text: word, size: 20 + Math.random() * 30 }));
+
+                // Create the word cloud layout
+                const layout = d3.layout.cloud()
+                    .size([500, 500])
+                    .words(words)
+                    .padding(5)
+                    .rotate(() => ~~(Math.random() * 2) * 90)  // Rotate words randomly by 0 or 90 degrees
+                    .fontSize(d => d.size)
+                    .on("end", draw);
+
+                layout.start();
+
+                // Function to draw the words on the SVG canvas
+                function draw(words) {
+                    d3.select("#word-cloud").append("svg")
+                        .attr("width", layout.size()[0])
+                        .attr("height", layout.size()[1])
+                        .append("g")
+                        .attr("transform", "translate(" + layout.size()[0] / 2 + "," + layout.size()[1] / 2 + ")")
+                        .selectAll("text")
+                        .data(words)
+                        .enter().append("text")
+                        .style("font-size", d => d.size + "px")
+                        .style("fill", () => `hsl(${Math.random() * 360},100%,50%)`)  // Random color for each word
+                        .attr("text-anchor", "middle")
+                        .attr("transform", d => "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")")
+                        .text(d => d.text);
+                }
+
+                console.log(data);
             }
+
+            // Function to clear the word cloud
+            function clearWordCloud() {
+                d3.select("#word-cloud").selectAll("*").remove(); // Clear existing words
+            }
+
+            // Modal show event listener (if needed)
+            $('#exampleModalCenter').on('show.bs.modal', function (event) {
+                const button = $(event.relatedTarget); // Button that triggered the modal
+                const wordArray = JSON.parse(button.attr('onclick').match(/\(([^)]+)\)/)[1]); // Extract word array from onclick
+                changeText(wordArray); // Call changeText with the extracted words
+            });
+
         </script>
-{#        <script>#}
-{#            $(document).ready(function() {#}
-{#                $('.btn-light').on('click', function() {#}
-{#                    // Récupère l'ID du document depuis l'attribut data-id du bouton#}
-{#                    var documentId = $(this).data('id');#}
 
-{#                    // console.log(documentId)#}
-
-{#                    // Envoie une requête AJAX au contrôleur avec l'ID du document#}
-{#                    $.ajax({#}
-{#                        url: 'nuage/mot',  // Remplacez par le chemin de votre route#}
-{#                        method: 'POST',#}
-{#                        data: {#}
-{#                            id: documentId#}
-{#                        },#}
-{#                        success: function(response) {#}
-{#                            console.log('Succès:', response);#}
-{#                            // Gérer la réponse ici, par exemple, afficher un message#}
-{#                        },#}
-{#                        error: function(xhr, status, error) {#}
-{#                            console.error('Erreur:', error);#}
-{#                            // Gérer les erreurs ici#}
-{#                        }#}
-{#                    });#}
-{#                });#}
-{#            });#}
-
-{#        </script>#}
 
         {% endblock %}
 
