@@ -5,22 +5,39 @@ namespace App\Services;
 use App\Entity\Word;
 use App\Entity\Document;
 use App\Entity\InvertedIndex;
+use App\Repository\DocumentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Exception;
 use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 use voku\helper\StopWords;
 use voku\helper\StopWordsLanguageNotExists;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
+
 
 class InvertedIndexService
 {
     private EntityManagerInterface $entityManager;
 
-//    private Doc2Txt $doc2Txt;
+    private ParameterBagInterface $parameterBag;
+    private DocumentRepository $documentRepository;
+    private HttpClientInterface $client;
 
-    public function __construct(EntityManagerInterface $entityManager)
+    /**
+     * @param EntityManagerInterface $entityManager
+     * @param ParameterBagInterface $parameterBag
+     * @param DocumentRepository $documentRepository
+     * @param HttpClientInterface $client
+     */
+    public function __construct(EntityManagerInterface $entityManager, ParameterBagInterface $parameterBag,
+                                DocumentRepository     $documentRepository, HttpClientInterface $client)
     {
         $this->entityManager = $entityManager;
+        $this->parameterBag = $parameterBag;
+        $this->documentRepository = $documentRepository;
+        $this->client = $client;
     }
 
     /**
@@ -49,6 +66,7 @@ class InvertedIndexService
     /**
      * @throws StopWordsLanguageNotExists
      * @throws Exception
+     * @throws TransportExceptionInterface
      */
     public function createInvertedIndex(string $filePath): void
     {
@@ -63,8 +81,20 @@ class InvertedIndexService
         // Preprocess and clean the text
         $words = $this->preprocessText($content);
 
-//        dd($words);
-        $wordFrequencies = array_count_values($words);
+        $response = $this->client->request('POST', 'http://127.0.0.1:8000/lemmatize', [
+            'json' => [
+                'tokens' =>array_values($words)]
+
+        ]);
+
+        $responseData = json_decode($response->getContent(), true);
+
+
+
+
+//        $wordFrequencies = array_count_values($words);
+//        dd($words,$responseData,$wordFrequencies);
+
 
         // Store the document in the database
         $document = new Document();
@@ -75,7 +105,7 @@ class InvertedIndexService
 //        dd($wordFrequencies);
 
         // For each word, store it in the database and create the inverted index
-        foreach ($wordFrequencies as $wordText=>$count) {
+        foreach ($responseData as $wordText=>$count) {
 
 
 
@@ -181,5 +211,29 @@ class InvertedIndexService
         return array_filter($words, function ($word) use ($stopWords) {
             return !in_array($word, $stopWords) && strlen($word) > 1;
         });
+    }
+
+    public function allDocumentDetail()
+    {
+
+        $documents=$this->documentRepository->findAll();
+
+        $documentDetail = [];
+
+
+        foreach ($documents as $document) {
+
+            $documentName= $this->parameterBag->get('upload_directory'). '/' . $document->getName() ;
+
+
+            if (file_exists($documentName)) {
+                $fileContent = file_get_contents($documentName);
+                $preview = mb_substr($fileContent, 0, 100); // Get the first 50 characters
+                $documentDetail[]= [$preview,$document]; // Add the preview to the result object
+            }
+
+        }
+        return $documentDetail;
+
     }
 }

@@ -83,14 +83,22 @@ class InvertedIndexController extends AbstractController
     #[Route('/upload', name: 'file_upload', methods: ['GET', 'POST'])]
     public function upload(Request $request): Response
     {
+
+       $doc=$this->invertedIndexService->allDocumentDetail();
+
         if ($request->isMethod('POST')) {
             // Get the uploaded file
             $files = $request->files->get('documents');
 
-//            dd($files);
+
+
+
 
 
             foreach ($files as $file) {
+
+
+
                 if ($file) {
                     // Vérifie si le fichier est bien un fichier .txt
                     if ($file->getClientOriginalExtension() !== 'txt') {
@@ -139,9 +147,13 @@ class InvertedIndexController extends AbstractController
 
         }
 
+//        dd($doc);
+
         // Affiche le formulaire d'upload
 
-        return $this->render('inverted_index/upload.html.twig');
+        return $this->render('inverted_index/upload.html.twig',[
+            'doc' => $doc,
+        ]);
 
     }
 

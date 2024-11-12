@@ -1,32 +1,43 @@
 {% extends 'base.html.twig' %}
 
+
 {% block title %}Hello InvertedIndexController!{% endblock %}
 
 {% block body %}
 
-    <div class="container">
-        <div class="row height d-flex justify-content-center align-items-center">
+    <div class="container w-50 p-3">
+        <div class="row height d-flex justify-content-center align-items-center ">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title">Upload Document Directory</h5>
+
+                    <h5 class="card-title">Téléverser le répertoire de documents</h5>
                     <form action="{{ path('file_upload') }}" method="POST" enctype="multipart/form-data">
-                        <label for="formFileSm" class="form-label">Upload Directory (Only .txt files will be processed)</label>
+                        <label for="formFileSm" class="form-label">Téléverser le répertoire (seuls les fichiers .txt seront traités)</label>
                         <input class="form-control form-control-sm" id="formFileSm" type="file" name="documents[]"
                                webkitdirectory directory multiple required />
-                        <button type="submit" class="btn btn-primary mt-3">Upload Directory</button>
+                        <button type="submit" class="btn btn-success mt-3">Téléverser le répertoire</button>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 
+    <div class="container w-70 p-3">
+        <div class="row">
+            {% for docs in doc %}
+            <div class="col-lg-4 ">
+                <div class="card-header">Document</div>
+                <div class="card-body ">
+                    <h5 class="card-title">{{ docs[1].Name|split('.txt')[0] }}</h5>
+                    <p class="card-text d-flex">{{ docs[0] }}...</p>
+                    <a href="{{path('app_nuage_de_mot',{id: docs[1].id})}}" class="btn btn-info">Détail</a>
 
-
-    {#    <form method="get"> #}
-    {#        <label for="search-term">Enter a search term:</label> #}
-    {#        <input type="text" id="search-term" name="term" value="{{ term }}"> #}
-    {#        <button type="submit">Search</button> #}
-    {#    </form> #}
-
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
 
 {% endblock %}
+
+
