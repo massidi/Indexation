@@ -42,6 +42,7 @@ class InvertedIndexService
 
     /**
      * @throws StopWordsLanguageNotExists
+     * @throws TransportExceptionInterface
      */
     public function parcourirArborescenceEtIndexer($dossier)
     {
@@ -81,6 +82,9 @@ class InvertedIndexService
         // Preprocess and clean the text
         $words = $this->preprocessText($content);
 
+//        dd(array_values($words));
+
+
         $response = $this->client->request('POST', 'http://127.0.0.1:8000/lemmatize', [
             'json' => [
                 'tokens' =>array_values($words)]
@@ -90,10 +94,8 @@ class InvertedIndexService
         $responseData = json_decode($response->getContent(), true);
 
 
-
-
 //        $wordFrequencies = array_count_values($words);
-//        dd($words,$responseData,$wordFrequencies);
+//        dd($wordFrequencies,$responseData);
 
 
         // Store the document in the database

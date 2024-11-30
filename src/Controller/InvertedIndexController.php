@@ -26,7 +26,7 @@ class InvertedIndexController extends AbstractController
         $this->repository = $repository;
     }
 
-    #[Route(path: '/search_page', name: 'search_page')] // Added name for the route
+    #[Route(path: '/', name: 'search_page')] // Added name for the route
     public function search(Request $request): Response
     {
 
