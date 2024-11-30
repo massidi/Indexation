@@ -1,5 +1,5 @@
 #version: '3'
-
+#refere to this repo: https://github.com/Celtak/exercice-symfony-7-docker/blob/main/Dockerfile
 services:
   nginx:
     image: nginx:1.22-alpine
