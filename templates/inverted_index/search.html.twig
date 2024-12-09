@@ -12,9 +12,13 @@
 
     <style>
         .word-cloud {
-            width: 100%;
-            height: 500px;
-        }
+            width: 800%;
+            height: 500%;
+        }/* Remove scrolling by ensuring content fits inside the modal */
+
+
+
+
     </style>
 {% endblock %}
 
@@ -40,16 +44,15 @@
         </div>
         <div class="row height d-flex justify-content-center align-items-center">
             <!-- Modal -->
-            <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+            <div class="modal fade w-600 " id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered" role="document">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title" id="exampleModalLongTitle">Nuage des mots</h5>
                             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                 <span aria-hidden="true">&times;</span>
                             </button>
                         </div>
-                        <div class="modal-body overflow-auto word-cloud" style="max-height: 500px;" id="word-cloud">
+                        <div class="modal-body  word-cloud" style="max-height: 500px;" id="word-cloud">
 
                         </div>
 
@@ -57,10 +60,10 @@
                 </div>
             </div>
 
-            <div class="col-md-12">
+            <div class="col-md-12 justify-content-left">
 
                 {% if term %}
-                    <div class="d-flex align-items-center justify-content-center" style="height: 5vh;">
+                    <div class="d-flex align-items-center " style="height: 5vh;">
                         <h4>
                             Votre recherche pour  "{{ term }}" a retourné {{ results | length }} résultats
                         </h4>
@@ -71,7 +74,7 @@
                     {% else %}
 
 
-                        <ol>
+                        <ol >
                             {% set docId="" %}
                             {% for resultat in results %}
                                 <li>
@@ -87,7 +90,8 @@
 
                                     <br>
                                     {{ resultat.preview }}...<br>
-                                   <button type="button" onclick="changeText( {{resultat.wordArray|json_encode }})"
+
+                                   <button type="button" onclick="changeText( {{resultat.wordArray|json_encode }},)"
                                            class="btn float-right" data-id="{{ resultat.document.id }}"
                                            data-toggle="modal" data-target="#exampleModalCenter">
                                        <i class="fa-brands fa-cloudflare " style="color: cadetblue; width: 15px"></i>
@@ -111,11 +115,6 @@
     </div>
 
 
-{#    <form method="get">#}
-{#        <label for="search-term">Enter a search term:</label>#}
-{#        <input type="text" id="search-term" name="term" value="{{ term }}">#}
-{#        <button type="submit">Search</button>#}
-{#    </form>#}
 
     {% block js %}
         {{ parent() }}
@@ -127,12 +126,23 @@
                 // Clear the previous word cloud
                 clearWordCloud();
 
-                // Convert wordArray to an array of objects with text and a default size
-                const words = data.map(word => ({ text: word, size: 20 + Math.random() * 30 }));
+                // Determine the maximum frequency for scaling
+                const maxFrequency = Math.max(...data.map(item => item[1]));
+                const minFrequency = Math.min(...data.map(item => item[1]));
+                // console.log("we are here:",minFrequency)
+
+
+                // Map words and their frequency to size
+                const words = data.map(item => {
+                    const [text, frequency] = item;
+                    // Scale size between 20px (min) and 80px (max)
+                    const size = scaleFontSize(frequency, minFrequency, maxFrequency, 20, 80);
+                    return { text, size };
+                });
 
                 // Create the word cloud layout
                 const layout = d3.layout.cloud()
-                    .size([500, 500])
+                    .size([400, 400])
                     .words(words)
                     .padding(5)
                     .rotate(() => ~~(Math.random() * 2) * 90)  // Rotate words randomly by 0 or 90 degrees
@@ -152,13 +162,19 @@
                         .data(words)
                         .enter().append("text")
                         .style("font-size", d => d.size + "px")
-                        .style("fill", () => `hsl(${Math.random() * 360},100%,50%)`)  // Random color for each word
+                        .style("fill", () => `hsl(${Math.random() * 360}, 100%, 50%)`)  // Random color for each word
                         .attr("text-anchor", "middle")
                         .attr("transform", d => "translate(" + [d.x, d.y] + ")rotate(" + d.rotate + ")")
                         .text(d => d.text);
                 }
 
-                console.log(data);
+                // Function to scale font size based on frequency
+                function scaleFontSize(frequency, minFreq, maxFreq, minSize, maxSize) {
+                    // Linear scaling formula
+                    return ((frequency - minFreq) / (maxFreq - minFreq)) * (maxSize - minSize) + minSize;
+                }
+
+                // console.log(data);  // Log to verify data
             }
 
             // Function to clear the word cloud
@@ -166,12 +182,6 @@
                 d3.select("#word-cloud").selectAll("*").remove(); // Clear existing words
             }
 
-            // Modal show event listener (if needed)
-            $('#exampleModalCenter').on('show.bs.modal', function (event) {
-                const button = $(event.relatedTarget); // Button that triggered the modal
-                const wordArray = JSON.parse(button.attr('onclick').match(/\(([^)]+)\)/)[1]); // Extract word array from onclick
-                changeText(wordArray); // Call changeText with the extracted words
-            });
 
         </script>
 

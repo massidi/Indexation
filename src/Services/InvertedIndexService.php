@@ -114,6 +114,7 @@ class InvertedIndexService
 
             $word = new Word();
             $word->setTerm($wordText);
+            $word->setWCounts($count);
             $this->entityManager->persist($word);
 
 

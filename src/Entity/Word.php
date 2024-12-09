@@ -15,6 +15,9 @@ class Word
     #[ORM\Column(type: 'string', length: 255)]
     private string $term;
 
+    #[ORM\Column]
+    private ?int $wCounts = null;
+
     public function getId(): int
     {
         return $this->id;
@@ -28,6 +31,18 @@ class Word
     public function setTerm(string $term): self
     {
         $this->term = $term;
+        return $this;
+    }
+
+    public function getWCounts(): ?int
+    {
+        return $this->wCounts;
+    }
+
+    public function setWCounts(int $wCounts): static
+    {
+        $this->wCounts = $wCounts;
+
         return $this;
     }
 }

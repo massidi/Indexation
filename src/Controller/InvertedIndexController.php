@@ -47,12 +47,17 @@ class InvertedIndexController extends AbstractController
 
                 foreach ($documentWords as $entry) {
                     // Assuming you have a method in InvertedIndex to get the associated Word entity
-                    $wordEntity = $entry->getWord()->getTerm(); // Adjust this according to your InvertedIndex entity method
+                    $wordEntity = [
+                        $entry->getWord()->getTerm(),
+                        $entry->getWord()->getWcounts()
+                    ]; // Adjust this according to your InvertedIndex entity method
                     $wordsArray[] = $wordEntity; // Collect the Word entity
                 }
 
-
                 $result->wordArray=$wordsArray;
+
+//                dd($result);
+
 
 
 
@@ -68,10 +73,6 @@ class InvertedIndexController extends AbstractController
             }
         }
 
-//        dd($results);
-
-
-//        dd($results);
 
         // Render the search page with the search results
         return $this->render('inverted_index/search.html.twig', [
@@ -139,7 +140,7 @@ class InvertedIndexController extends AbstractController
             }
 
 // Réponse JSON finale une fois que tous les fichiers ont été traités avec succès
-
+$this->addFlash("success","Tous les fichiers ont été traités avec succès! vous pouvez faire vos recherche");
             return $this->redirectToRoute('search_page', [
                 'status' => 'success',
                 'message' => 'Tous les fichiers ont été traités avec succès.',
@@ -147,9 +148,6 @@ class InvertedIndexController extends AbstractController
 
         }
 
-//        dd($doc);
-
-        // Affiche le formulaire d'upload
 
         return $this->render('inverted_index/upload.html.twig',[
             'doc' => $doc,
